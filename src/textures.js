@@ -17,5 +17,8 @@ export function getTextures() {
     );
   }
 
-  return [...new Set(textures, ...Object.keys(data))];
+  const collection = [...new Set(textures, ...Object.keys(data))];
+  collection.sort();
+
+  return collection;
 }

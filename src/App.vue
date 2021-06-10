@@ -17,29 +17,18 @@
           :block="blockName"
           :value="valueStates"
         />
-
-        <div class="mt-8" v-if="blockName">
-          <TextureSetLayer
-            :block="blockName"
-            header="Base"
-            suffix=""
-            @input="(v) => (valueStates.color = v)"
-          />
-        </div>
       </v-container>
     </v-main>
   </v-app>
 </template>
 
 <script>
-import TextureSetLayer from "./components/TextureSetLayer";
 import TextureSetOutput from "./components/TextureSetOutput";
 import { getTextures } from "./textures";
 
 export default {
   name: "App",
   components: {
-    TextureSetLayer,
     TextureSetOutput,
   },
   data: () => ({
@@ -78,6 +67,10 @@ export default {
       this.valueStates.color = this.colorStates.color;
     },
     onInput(search) {
+      if (!search) {
+        return;
+      }
+
       const val = search.trim().toLowerCase();
 
       this.inputStates.color = this.inputStates.color || val;
