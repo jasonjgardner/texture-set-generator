@@ -9,14 +9,9 @@
           clearable
           auto-select-first
           solo
-          @input="onInput"
         ></v-combobox>
 
-        <TextureSetOutput
-          v-if="blockName"
-          :block="blockName"
-          :value="valueStates"
-        />
+        <TextureSetOutput v-if="blockName" :block="blockName" />
       </v-container>
     </v-main>
   </v-app>
@@ -34,68 +29,9 @@ export default {
   data: () => ({
     blockName: "",
     blockList: [],
-    activeLayers: [],
-    useColor: {
-      color: false,
-      mer: false,
-    },
-    colorStates: {
-      color: null,
-      mer: null,
-    },
-    inputStates: {
-      color: null,
-      mer: null,
-      normal: null,
-      heightmap: null,
-    },
-    valueStates: {
-      color: null,
-      mer: null,
-      normal: null,
-    },
-    preferHeightmap: false,
   }),
   mounted() {
     this.blockList = getTextures();
-  },
-  methods: {
-    setBaseLayerColor(rgba) {
-      this.colorStates.color = Object.values(rgba);
-      this.colorStates.color[3] = +this.valueStates.color[3].toPrecision(2);
-
-      this.valueStates.color = this.colorStates.color;
-    },
-    onInput(search) {
-      if (!search) {
-        return;
-      }
-
-      const val = search.trim().toLowerCase();
-
-      this.inputStates.color = this.inputStates.color || val;
-
-      this.valueStates = {
-        color: `${val}`,
-        mer: `${val}_mer`,
-        normal: `${val}_normal`,
-        heightmap: `${val}_heightmap`,
-      };
-    },
-    toggleColorValue(idx) {
-      this.valueStates.color = idx
-        ? this.colorStates.color
-        : this.inputStates.color;
-    },
-    onTextureInput(val) {
-      this.inputStates.color = val;
-      this.valueStates.color = this.inputStates.color;
-    },
-  },
-  computed: {
-    colorValue() {
-      return "";
-    },
   },
 };
 </script>

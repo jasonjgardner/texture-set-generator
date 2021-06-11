@@ -12,17 +12,32 @@
       <v-divider></v-divider>
       <v-list-item>
         <v-list-item-content>
+          <v-select
+            v-model="formatVersion"
+            :items="formatVersionMenu"
+            label="Format Version"
+          ></v-select>
+        </v-list-item-content>
+      </v-list-item>
+      <v-divider></v-divider>
+      <v-list-item>
+        <v-list-item-content>
           <v-combobox
             v-model="displayValue.color"
             label="Base layer"
             :items="[block]"
-            @input="(v) => (inputValue.color = v)"
+            @input="(v) => onLayerInput('color', v)"
           ></v-combobox>
         </v-list-item-content>
-        <v-list-item-action>
-          <v-btn icon @click="openColorPicker(false)">
-            <v-icon color="grey lighten-1">mdi-format-color-fill</v-icon>
-          </v-btn>
+        <v-list-item-action @click="openColorPicker(false)">
+          <v-tooltip left>
+            <template v-slot:activator="{ on, attrs }">
+              <v-btn icon v-bind="attrs" v-on="on">
+                <v-icon color="grey lighten-1">mdi-format-color-fill</v-icon>
+              </v-btn>
+            </template>
+            <span>Select uniform color</span>
+          </v-tooltip>
         </v-list-item-action>
       </v-list-item>
 
@@ -32,13 +47,18 @@
             v-model="displayValue.mer"
             label="MER map"
             :items="merSuggestions"
-            @input="(v) => (inputValue.mer = v)"
+            @input="(v) => onLayerInput('mer', v)"
           ></v-combobox>
         </v-list-item-content>
-        <v-list-item-action>
-          <v-btn icon @click="openColorPicker(true)">
-            <v-icon color="grey lighten-1">mdi-format-color-fill</v-icon>
-          </v-btn>
+        <v-list-item-action @click="openColorPicker(true)">
+          <v-tooltip left>
+            <template v-slot:activator="{ on, attrs }">
+              <v-btn icon v-bind="attrs" v-on="on">
+                <v-icon color="grey lighten-1">mdi-format-color-fill</v-icon>
+              </v-btn>
+            </template>
+            <span>Select uniform color</span>
+          </v-tooltip>
         </v-list-item-action>
       </v-list-item>
 
@@ -55,6 +75,7 @@
             <template v-slot:activator="{ on, attrs }">
               <v-btn small color="secondary" v-bind="attrs" v-on="on">
                 {{ !useNormalMap ? "Heightmap" : "Normal map" }}
+                <v-icon right>mdi-chevron-down</v-icon>
               </v-btn>
             </template>
             <v-list>
@@ -103,22 +124,9 @@ export default {
       default: "",
       validator: (v) => `${v}`.match(/^[a-z]+[a-z0-9_]*[a-z0-9]*$/i),
     },
-    value: {
-      type: Object,
-      required: true,
-      default: () => ({
-        color: "",
-      }),
-      validator: (obj) => obj.color !== undefined && obj.color.length > 0,
-    },
-    format: {
-      type: String,
-      required: false,
-      default: () => "1.16.100",
-      validator: (v) => `${v}`.match(/^1\.[1-9][0-9]+\.[1-9][0-9]{2}$/),
-    },
   },
   data: () => ({
+    formatVersion: "1.16.100",
     colorValue: {
       color: null,
       mer: null,
@@ -130,11 +138,19 @@ export default {
     },
     showColorPicker: false,
     pickMer: false,
-    useColorValues: false,
+    useColorValues: {
+      color: false,
+      mer: false,
+    },
     useNormalMap: true,
   }),
   mounted() {
-    this.inputValue = this.value;
+    this.inputValue = {
+      color: `${this.block}`,
+      mer: `${this.block}_mer`,
+      normal: `${this.block}_normal`,
+      heightmap: `${this.block}_heightmap`,
+    };
     this.displayValue = this.inputValue;
   },
   methods: {
@@ -157,18 +173,23 @@ export default {
       this.showColorPicker = false;
     },
     colorPickerInput({ rgba, hexa, hex }) {
-      this.useColorValues = true;
       let rgb = Object.values(rgba);
 
       if (this.pickMer) {
+        this.useColorValues.mer = true;
         rgb.length = 3;
         this.colorValue.mer = rgb;
         this.displayValue.mer = hex;
         return;
       }
 
+      this.useColorValues.color = true;
       this.displayValue.color = "#" + ahex(hexa);
       this.colorValue.color = rgb;
+    },
+    onLayerInput(layer, val) {
+      this.useColorValues[layer] = false;
+      this.inputValue[layer] = val;
     },
   },
   computed: {
@@ -176,12 +197,19 @@ export default {
       return `${this.block.toLowerCase()}.texture_set.json`;
     },
     textureSetData() {
-      const textureSet = {
-        color: this.inputValue.color,
+      const getLayerValue = (layer) => {
+        const key = this.useColorValues[layer] ? "colorValue" : "inputValue";
+        return this[key][layer];
       };
 
-      if (this.inputValue.mer) {
-        textureSet.metalness_emissive_roughness = this.inputValue.mer;
+      const textureSet = {
+        color: getLayerValue("color") || this.inputValue.color,
+      };
+
+      const mer = getLayerValue("mer") || this.inputValue.mer;
+
+      if (mer?.length > 0) {
+        textureSet.metalness_emissive_roughness = mer;
       }
 
       if (this.useNormalMap && this.inputValue.normal) {
@@ -193,7 +221,7 @@ export default {
       }
 
       return {
-        format_version: this.format,
+        format_version: this.formatVersion,
         "minecraft:texture_set": textureSet,
       };
     },
@@ -203,7 +231,7 @@ export default {
     merSuggestions() {
       const list = [`${this.block}_mer`];
 
-      if (!this.useColorValues) {
+      if (!this.useColorValues.color) {
         list.push(`${this.inputValue.color}_mer`);
       }
 
@@ -219,12 +247,13 @@ export default {
 
       suggestions.push(`${this.block}_${suffix}`);
 
-      if (this.inputValue.color?.length > 1) {
+      if (!this.useColorValues && this.inputValue.color?.length > 1) {
         suggestions.push(`${this.inputValue.color}_${suffix}`);
       }
 
       return suggestions;
     },
+    formatVersionMenu: () => ["1.16.100", "1.16.200", "1.17.0"],
   },
 };
 </script>
