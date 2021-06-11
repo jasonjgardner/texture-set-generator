@@ -12,6 +12,7 @@
     "vuetify": "2.5.3"
   },
   "devDependencies": {
+    "@babel/preset-env": "7.14.5",
     "@vue/cli-plugin-babel": "3.6.0",
     "@vue/cli-plugin-eslint": "3.6.0",
     "@vue/cli-service": "3.6.0",
@@ -25,10 +26,7 @@
     "env": {
       "node": true
     },
-    "extends": [
-      "plugin:vue/essential",
-      "eslint:recommended"
-    ],
+    "extends": ["plugin:vue/essential", "eslint:recommended"],
     "rules": {},
     "parserOptions": {
       "parser": "babel-eslint"
@@ -39,15 +37,7 @@
       "autoprefixer": {}
     }
   },
-  "browserslist": [
-    "> 1%",
-    "last 2 versions",
-    "not ie <= 8"
-  ],
-  "keywords": [
-    "bridge",
-    "minecraft",
-    "bridge-plugin"
-  ],
+  "browserslist": ["> 1%", "last 2 versions", "not ie <= 8"],
+  "keywords": ["bridge", "minecraft", "bridge-plugin"],
   "description": "Texture Set Generator extension for bridge. editor"
 }
