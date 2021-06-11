@@ -13,22 +13,5 @@
         }
       }
     ]
-  ],
-  "plugins": [
-    "@vue/babel-plugin-jsx",
-    "@babel/plugin-syntax-dynamic-import",
-    [
-      "@babel/plugin-proposal-decorators",
-      {
-        "decoratorsBeforeExport": false,
-        "legacy": false
-      }
-    ],
-    [
-      "@babel/plugin-proposal-class-properties",
-      {
-        "loose": false
-      }
-    ]
   ]
 }
