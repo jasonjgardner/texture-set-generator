@@ -208,7 +208,7 @@ export default {
 
       const mer = getLayerValue("mer") || this.inputValue.mer;
 
-      if (mer?.length > 0) {
+      if (mer && mer.length > 0) {
         textureSet.metalness_emissive_roughness = mer;
       }
 
