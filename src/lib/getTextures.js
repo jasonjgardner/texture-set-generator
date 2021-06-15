@@ -1,6 +1,4 @@
-import data from "./assets/blocks.json";
-
-export function getTextures() {
+export default function getTextures(data) {
   const textures = [];
 
   const blocks = Object.entries(data);
