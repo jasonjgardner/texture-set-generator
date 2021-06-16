@@ -91,7 +91,7 @@
       </v-list-item>
       <v-divider></v-divider>
       <v-card-actions>
-        <v-btn text color="primary" @click="download">Save</v-btn>
+        <v-btn text color="primary" @click="saveTextureSet">Save</v-btn>
       </v-card-actions>
     </v-card>
 
@@ -109,10 +109,22 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <v-snackbar v-model="showSnackbar">
+      {{ filename }} saved
+
+      <template v-slot:action="{ attrs }">
+        <v-btn color="pink" text v-bind="attrs" @click="showSnackbar = false">
+          Close
+        </v-btn>
+      </template>
+    </v-snackbar>
   </div>
 </template>
 
 <script>
+import { writeJSON } from "@/lib/fs";
+import getFormatVersions from "@/lib/getFormatVersions";
 const ahex = (v) => `${v}`.substr(7, 2) + `${v}`.substr(1, 6);
 
 export default {
@@ -126,7 +138,7 @@ export default {
     },
   },
   data: () => ({
-    formatVersion: "1.16.100",
+    formatVersion: "",
     colorValue: {
       color: null,
       mer: null,
@@ -143,6 +155,7 @@ export default {
       mer: false,
     },
     useNormalMap: true,
+    showSnackbar: false,
   }),
   mounted() {
     this.inputValue = {
@@ -152,17 +165,12 @@ export default {
       heightmap: `${this.block}_heightmap`,
     };
     this.displayValue = this.inputValue;
+    this.formatVersion = getFormatVersions()[0];
   },
   methods: {
-    download() {
-      const el = document.createElement("a");
-      el.href = URL.createObjectURL(
-        new Blob([JSON.stringify(this.textureSetData)], {
-          type: "text/plain",
-        })
-      );
-      el.download = this.filename;
-      el.click();
+    async saveTextureSet() {
+      const filename = await writeJSON(this.filename, this.textureSetData);
+      this.showSnackbar = filename !== null;
     },
     openColorPicker(isMer) {
       this.pickMer = isMer === true;
@@ -247,13 +255,17 @@ export default {
 
       suggestions.push(`${this.block}_${suffix}`);
 
-      if (!this.useColorValues && this.inputValue.color?.length > 1) {
+      if (
+        !this.useColorValues &&
+        this.inputValue.color &&
+        this.inputValue.color.length > 1
+      ) {
         suggestions.push(`${this.inputValue.color}_${suffix}`);
       }
 
       return suggestions;
     },
-    formatVersionMenu: () => ["1.16.100", "1.16.200", "1.17.0"],
+    formatVersionMenu: () => getFormatVersions(),
   },
 };
 </script>
